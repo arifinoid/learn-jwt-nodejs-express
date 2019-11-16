@@ -13,12 +13,44 @@ const App = () => {
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
 
-  const logOutCallback = async () => {};
-  useEffect(() => {}, []);
+  const logOutCallback = async () => {
+    await fetch(`${process.env.REACT_APP_API_URL}/logout`, {
+      method: "POST",
+      credentials: "include"
+    });
+
+    setUser({});
+    navigate("/");
+  };
+
+  useEffect(() => {
+    const checkRefreshToken = async () => {
+      const result = await (
+        await fetch(`${process.env.REACT_APP_API_URL}/refresh_token`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+      ).json();
+
+      setUser({ accesstoken: result.accesstoken });
+      setLoading(false);
+    };
+    checkRefreshToken();
+  }, []);
+
+  if (loading)
+    return (
+      <div className="app">
+        <h1>loading...</h1>
+      </div>
+    );
 
   return (
     <UserContext.Provider value={[user, setUser]}>
-      <div className="App">
+      <div className="app">
         <Navigation logOutCallback={logOutCallback} />
         <Router>
           <Login path="login" />
